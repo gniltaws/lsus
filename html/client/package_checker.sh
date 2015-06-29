@@ -34,7 +34,7 @@ fi
 os=$(echo $os|sed -e 's/[^a-zA-Z0-9]//g')
 # begin update checks
 if [[ "$os" = "CentOS" ]] || [[ "$os" = "Fedora" ]] || [[ "$os" = "RHEL" ]]; then
-        data=$(rpm -qa --qf '%{NAME}:::%{VERSION}\n')
+        data=$(rpm -qa --qf '%{NAME}:::%{VERSION}-%{RELEASE}\n')
 elif [[ "$os" = "Ubuntu" ]] || [[ "$os" = "Debian" ]]; then
 	data=$(dpkg -l|grep "ii"|awk '{print $2":::"$3}')
 elif [[ "$os" = "Linux" ]]; then
@@ -44,5 +44,5 @@ fi
 if [[ -z "$data" ]]; then
 	exit 0
 else
-	curl -k -H "X-CLIENT-KEY: $client_key" $submit_packages_uri -d "$data" > /dev/null 2>&1
+	curl -H "X-CLIENT-KEY: $client_key" $submit_packages_uri -d "$data" > /dev/null 2>&1
 fi
