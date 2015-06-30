@@ -834,21 +834,17 @@ function dbCreate()
 	if [[ "$db_user" = "" ]]; then
 		mysql -u $db_root_id -h $db_host -p"$db_pass" -e "create database $db_name;"
         	mysql -u $db_root_id -h $db_host -p"$db_pass" -D $db_name < database/db_create.sql
-	        mysql -u $db_root_id -h $db_host -p"$db_pass" -D $db_name < database/centos_data.sql
 	else
 		mysql -u $db_user -h $db_host -p"$db_pass" -e "create database $db_name;"
                 mysql -u $db_user -h $db_host -p"$db_pass" -D $db_name < database/db_create.sql
-                mysql -u $db_user -h $db_host -p"$db_pass" -D $db_name < database/centos_data.sql
 	fi
 }
 function dbUpdate()
 {
 	if [[ "$db_user" = "" ]]; then
 		mysql -u $db_root_id -h $db_host -p"$db_pass" -s -D $db_name < database/db_update.sql
-		mysql -u $db_root_id -h $db_host -p"$db_pass" -D $db_name < database/centos_data.sql
 	else
         	mysql -u $db_user -h $db_host -p"$db_pass" -s -D $db_name < database/db_update.sql
-        	mysql -u $db_user -h $db_host -p"$db_pass" -D $db_name < database/centos_data.sql
 	fi
 }
 function WebDaemonUser()
