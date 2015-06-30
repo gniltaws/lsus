@@ -24,7 +24,8 @@ if (!isset($index_check) || $index_check != "active"){
  $distro_res2 = mysql_query($distro_sql2);
  $distro_row2 = mysql_fetch_array($distro_res2);
  $apt_cmd = $distro_row2['upgrade_command'];
- $sql1 = "select * from patches where server_name='$server_name';";
+ $distro_name = $distro_row2['distro_name'];
+ $sql1 = "SELECT * FROM patches WHERE server_name='$server_name' ORDER BY FIELD(urgency,'Critical','high','Important','Moderate','medium','Low','low','bugfix','enhancement');";
  $res1 = mysql_query($sql1);
  $table = "";
  while ($row1 = mysql_fetch_assoc($res1)){
@@ -43,27 +44,37 @@ if (!isset($index_check) || $index_check != "active"){
      $bug_url = $row1['bug_url'];
         if ($bug_url != ''){
                 if (stristr($bug_url,'debian')){
-                        $url_array = explode("/",$bug_url);
-                        $cve = end($url_array);
-                        $url = "<td><a href='$bug_url' style='color:black'>Debian $cve</a></td>";
+                	$url_array = explode("/",$bug_url);
+                	$cve = end($url_array);
+            		$url = "<td><a href='$bug_url'>$cve</a></td>";
+                }
+                elseif ($distro_name == "Oracle"){
+                	$url_array = explode("/",$bug_url);
+                	$bug = end($url_array);
+                	$url = "<td><a href='$bug_url' style='color:black'>$bug</a></td>";
                 }
                 else{
-                        $url_array = explode("/",$bug_url);
-                        $bug = end($url_array);
-                        $url = "<td><a href='$bug_url' style='color:black'>Launchpad Bug #$bug</a></td>";
+                	$url_array = explode("/",$bug_url);
+                	$bug = end($url_array);
+                	$url = "<td><a href='$bug_url' style='color:black'>Launchpad Bug #$bug</a></td>";
                 }
         }
-     if (in_array($urgency,array('high','emergency'))){
-                $urgency = "<td style='color:red'><a href='http://www.ubuntuupdates.org/package/core/precise/main/updates/$package_name_orig' style='color:red' target='_blank'>$urgency</a></td>";
+        else{
+        	    $url = "<td>unknown</td>";
+        }
+        	    
+     if (in_array($urgency,array('high','emergency','Critical','Important'))){
+//                $urgency = "<td style='color:red'>$urgency</td>";
+                $urgency = '<td><span class="label label-danger">'.$urgency.'</span></td>';
      }
-     elseif ($urgency == "medium"){
-                $urgency = "<td style='color:#FF8C00'><a href='http://www.ubuntuupdates.org/package/core/precise/main/updates/$package_name_orig' style='color:#FF8C00' target='_blank'>medium</a></td>";
+     elseif (in_array($urgency,array('medium','Moderate'))){
+               $urgency = '<td><span class="label label-warning">'.$urgency.'</span></td>';
      }
-     elseif ($urgency == "low") {
-                $urgency = "<td><a href='http://www.ubuntuupdates.org/package/core/precise/main/updates/$package_name_orig' style='color:black' target='_blank'>$urgency</a></td>";
+     elseif (in_array($urgency,array('low','Low'))) {
+                $urgency = '<td><span class="label label-info">'.$urgency.'</span></td>';
      }
      else{
-                $urgency = "<td>$urgency</td>";
+                $urgency = '<td><span class="label label-primary">'.$urgency.'</span></td>';
      }
      $table .= "                <tr>
                   <td><a href='${base_path}search/exact/$package_name_orig' style='color:green'>$package_name</a></td>
@@ -78,11 +89,17 @@ if ($package_count == 0){
         $apt_cmd = "";
 }
 else{
-        $apt_cmd = "<code>$apt_cmd</code>";
+		//Since Oracle Linux is set up to send all updates for a package, (not just the latest)
+		//there can be multiple entries.  This code removes duplicates.
+        $apt_cmd = "<code>".implode(' ',array_unique(explode(' ', $apt_cmd)))."</code>";
 }
 ?>
           <h1 class="page-header">List Packages to Install</h1>
+<!-- Original, (I removed "Install all patches not suppressed and reboot")
           <h2 class="sub-header"><?php echo $server_alias;?>(<a href="<?php echo BASE_PATH;?>packages/server/<?php echo $server_name;?>">List all installed packages</a>)</h2><br /><p>(<a href="<?php echo BASE_PATH;?>plugins/main/install_all.inc.php?id=<?php echo $id;?>" style="color:green;">Install all patches not suppressed</a> | <a href="<?php echo BASE_PATH;?>plugins/main/install_all.inc.php?reboot=1&id=<?php echo $id;?>" style="color:red;">Install all patches not suppressed and reboot</a>)</p>
+-->
+          <h2 class="sub-header"><?php echo $server_alias;?> (<a href="<?php echo BASE_PATH;?>packages/server/<?php echo $server_name;?>">List all installed packages</a>)</h2><br />
+          </p>
         <div class="container">
           <div class="table-responsive">
             <table class="table table-striped">
@@ -92,7 +109,7 @@ else{
                   <th>Current Version</th>
                   <th>New Version</th>
                   <th>Urgency Level</th>
-                  <th>Bug Report Name/Page</th>
+                  <th>Security Information</th>
                 </tr>
               </thead>
               <tbody>

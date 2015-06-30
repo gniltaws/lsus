@@ -27,19 +27,64 @@ if (!isset($index_check) || $index_check != "active"){
      $server_count++;
      $server_name = $row1['server_name'];
      $server_alias = $row1['server_alias'];
-	 $distro_id = $row1['distro_id'];
+
+	 if ( !empty($row1['needs_restart']) ){
+	 	if ( $row1['needs_restart'] > 0 ){
+			$needs_restart = "<span class=\"label label-warning\">Restart Svc/Svr</span>";
+	 	} else {
+			$needs_restart = "<span class=\"label label-default\">Check restart function not working</span>";
+	 	}
+
+	 } else {
+	 	$needs_restart= "";
+	 }
+
+	 $distro_id = $row1['distro_id'];	 
 	 $dist_sql = "SELECT * FROM distro WHERE id='$distro_id';";
 	 $dist_res = mysql_query($dist_sql);
 	 $dist_row = mysql_fetch_array($dist_res);
 	 $dist_img = BASE_PATH.$dist_row['icon_path'];
-     $sql2 = "SELECT COUNT(*) as `total` FROM patches where server_name='$server_name' and package_name NOT IN($supressed_list) and package_name != '';";
+     $sql2 = "SELECT urgency FROM patches where server_name='$server_name' and package_name NOT IN($supressed_list) and package_name != '';";
      $res2 = mysql_query($sql2);
-     $row2 = mysql_fetch_array($res2);
-     $count = $row2['total'];
+     //$row2 = mysql_fetch_array($res2);
+
+	 $h_urg = $m_urg = $l_urg = $b_urg = "" ;
+	 while($row2 = mysql_fetch_array($res2)){
+		switch ($row2[0]) {
+			case 'high':
+			case 'Critical':
+			case 'Important':
+			case 'emergency':
+				++$h_urg;
+				break;
+			case 'medium':
+			case 'Moderate':
+				++$m_urg;
+				break;
+			case 'low':
+			case 'Low':
+				++$l_urg;
+				break;
+			case 'bugfix':
+			case 'enhancement':
+				++$b_urg;
+				break;
+		}
+//		$high_urg_arr_name[] = $row[server_name];
+//		$high_urg_arr[] = $row[package_name];
+	 }
+//     $count = $row2['total'];
+     $count = $h_urg + $m_urg + $l_urg + $b_urg ;
      $total_count = $total_count + $count;
      $table .= "                <tr>
-                  <td><a href='{$base_path}patches/server/$server_name'><img src='$dist_img' height='32' width='32' border='0'>&nbsp;$server_alias</a></td>
-                  <td>$count</td>
+                  <td><a href='{$base_path}patches/server/$server_name'><img src='$dist_img' height='32' width='32' border='0'>&nbsp;$server_alias</a> $needs_restart</td>
+                  <td>
+                  	$count
+                  	<span class=\"label label-danger\">$h_urg</span>
+                  	<span class=\"label label-warning\">$m_urg</span>
+                  	<span class=\"label label-info\">$l_urg</span>
+                  	<span class=\"label label-primary\">$b_urg</span>
+                  </td>
                 </tr>
 ";
  }
@@ -56,6 +101,7 @@ if ($percent_good_to_go < 0){
                 <div class="percentage" data-percent="<?php echo $percent_good_to_go;?>"><span><?php echo $percent_good_to_go;?></span>%</div>
                 <div class="label" style="color:#0000FF">Percent of servers not needing upgrades/patches</div>
             </div>
+ 
 
           <div class="table-responsive">
             <table class="table table-striped">
@@ -63,6 +109,7 @@ if ($percent_good_to_go < 0){
                 <tr>
                   <th>Server Name (<?php echo $server_count;?> servers)</th>
                   <th>Patch Count (<?php echo $total_count;?> total patches available)</th>
+                  <th scope="row"></th>
                 </tr>
               </thead>
               <tbody>
