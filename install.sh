@@ -1604,7 +1604,7 @@ Base Setup:
 2) Update
 
 Optional:
-3) EnableSSL
+3) EnableSSL - Set up SSL on this server
 
 q) Quit
 EOF
