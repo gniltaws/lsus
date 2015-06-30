@@ -12,9 +12,12 @@ if [[ -f /etc/lsb-release && -f /etc/debian_version ]]; then
         export client_os=$(lsb_release -s -d|head -1|awk {'print $1'})
         export client_os_ver=$(lsb_release -s -d|head -1|awk {'print $2'}|cut -d "." -f 1)
 elif [[ -f /etc/debian_version ]]; then
-        export client_os="$(cat /etc/issue|head -n 1|awk {'print $1'})"
-        export client_os_ver="$(cat /etc/debian_version|head -1|awk {'print $1'}|cut -d "." -f 1)"
+        export client_os="$(head -n 1 /etc/issue | awk {'print $1'})"
+        export client_os_ver="$(head -n1 /etc/debian_version |awk {'print $1'}|cut -d "." -f 1)"
+elif [[ -f /etc/oracle-release ]]; then
+        export client_os="Oracle"
 elif [[ -f /etc/redhat-release ]]; then
+	export client_os=$(cat /etc/redhat-release|head -1|awk {'print $1'})
 	if [[ "$client_os" = "Red" && $(grep -i enterprise /etc/redhat-release) != "" ]]; then
 		export client_os="RHEL"
 		export client_os_ver=$(cat /etc/redhat-release|head -1|awk {'print $7'}|cut -d "." -f 1)
@@ -22,12 +25,7 @@ elif [[ -f /etc/redhat-release ]]; then
 		export client_os="RHEL"
 		export client_os_ver=$(cat /etc/redhat-release|head -1|awk {'print $6'}|cut -d "." -f 1)
 	else
-		export client_os=$(cat /etc/redhat-release|head -1|awk {'print $1'})
 		export client_os_ver=$(cat /etc/redhat-release|head -1|awk {'print $3'}|cut -d "." -f 1)
-
-		if [[ "$client_os_ver" = "release" ]]; then
-			export client_os_ver=$(cat /etc/redhat-release|head -1|awk {'print $4'}|cut -d "." -f 1)
-		fi
 	fi
 else
         export client_os=$(uname -s -r|head -1|awk {'print $1'})
@@ -50,11 +48,24 @@ if [ ! -f ${client_path}.patchrc ]; then
 else
         client_key=$(grep client_key ${client_path}.patchrc|awk -F\" {'print $2'})
 fi
+
+#Check to see if there are any processes using recently updated packages
+needsrestart="-1"
+if [ $client_os == 'Debian' ]; then
+	needsrestart=`checkrestart | awk '$1 ~/^Found/ {print $2}'`
+elif [ $client_os == 'RHEL' ] || [ $client_os == 'Oracle' ]; then
+	needsrestart=`needs-restarting | wc -l`
+fi
+
 # load client_key
 . ${client_path}.patchrc
 # remove any special characters
 client_os=$(echo $client_os|sed -e 's/[^a-zA-Z0-9]//g')
-curl -k -s -H "X-CLIENT-KEY: $client_key" -H "X-CLIENT-HOST: $client_host" -H "X-CLIENT-OS: $client_os" -H "X-CLIENT-OS-VER: $client_os_ver" $check_in > /tmp/check-in_$client_key
+curl -s -H "X-CLIENT-KEY: $client_key" -H "X-CLIENT-HOST: $client_host" -H "X-CLIENT-OS: $client_os" -H "X-CLIENT-OS-VER: $client_os_ver" -H "X-CLIENT-NEEDS-RESTART: $needsrestart" $check_in > /tmp/check-in_$client_key
+
+# For troubleshooting the above command:
+#echo "curl -s -H \"X-CLIENT-KEY: $client_key\" -H \"X-CLIENT-HOST: $client_host\" -H \"X-CLIENT-OS: $client_os\" -H \"X-CLIENT-OS-VER: $client_os_ver\" -H \"X-CLIENT-NEEDS-RESTART: $needsrestart\" $check_in > /tmp/check-in_$client_key" && echo " "
+
 cmds_line_count=$(cat /tmp/check-in_$client_key|wc -l)
 if [ "$cmds_line_count" -gt "1" ]; then
         . /tmp/check-in_$client_key
@@ -64,7 +75,7 @@ if [ "$cmds_line_count" -gt "1" ]; then
                                 ${client_path}patch_checker.sh&
                                 ${client_path}package_checker.sh&
                         fi
-                        ${client_path}run_commands.sh&
+#                        ${client_path}run_commands.sh&
                 fi
         fi
         key_to_check=$(head -n 1 /tmp/check-in_$client_key)

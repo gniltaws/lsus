@@ -5,6 +5,7 @@ $client_key = filter_input(INPUT_SERVER, 'HTTP_X_CLIENT_KEY');
 $client_host = filter_input(INPUT_SERVER, 'HTTP_X_CLIENT_HOST');
 $client_os = filter_input(INPUT_SERVER, 'HTTP_X_CLIENT_OS');
 $client_os_ver = filter_input(INPUT_SERVER, 'HTTP_X_CLIENT_OS_VER');
+$needs_restart = filter_input(INPUT_SERVER, 'HTTP_X_CLIENT_NEEDS_RESTART');
 if (isset($client_key) && !empty($client_key)) {
     $sql = "SELECT * FROM `servers` WHERE `client_key`='$client_key' and `trusted`= 1;";
     $link = mysql_connect(DB_HOST, DB_USER, DB_PASS);
@@ -44,7 +45,7 @@ check_patches='FALSE'";
         } else {
             $CHECK_PATCHES = "FALSE";
         }
-        $sql2 = "UPDATE `servers` SET `last_seen` = NOW() WHERE `client_key`='$client_key';";
+        $sql2 = "UPDATE `servers` SET `last_seen` = NOW(), `needs_restart` = '$needs_restart' WHERE `client_key`='$client_key';";
         #echo $sql2;
         mysql_query($sql2);
         $out = "allowed='TRUE'
