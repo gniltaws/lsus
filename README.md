@@ -1,6 +1,10 @@
 PatchMD
 ==============
 
+This fork is actively being updated, so it may not work. See the [original](https://github.com/PatchDashboard/patchdashboard) project for a working version.
+===============
+
+
 Patch Management Dashboard
 ===============
 Patch Management Dashboard does one thing, but it does it well:
