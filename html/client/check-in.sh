@@ -61,10 +61,10 @@ fi
 . ${client_path}.patchrc
 # remove any special characters
 client_os=$(echo $client_os|sed -e 's/[^a-zA-Z0-9]//g')
-curl -s -H "X-CLIENT-KEY: $client_key" -H "X-CLIENT-HOST: $client_host" -H "X-CLIENT-OS: $client_os" -H "X-CLIENT-OS-VER: $client_os_ver" -H "X-CLIENT-NEEDS-RESTART: $needsrestart" $check_in > /tmp/check-in_$client_key
+curl -L -s -H "X-CLIENT-KEY: $client_key" -H "X-CLIENT-HOST: $client_host" -H "X-CLIENT-OS: $client_os" -H "X-CLIENT-OS-VER: $client_os_ver" -H "X-CLIENT-NEEDS-RESTART: $needsrestart" $check_in > /tmp/check-in_$client_key
 
 # For troubleshooting the above command:
-#echo "curl -s -H \"X-CLIENT-KEY: $client_key\" -H \"X-CLIENT-HOST: $client_host\" -H \"X-CLIENT-OS: $client_os\" -H \"X-CLIENT-OS-VER: $client_os_ver\" -H \"X-CLIENT-NEEDS-RESTART: $needsrestart\" $check_in > /tmp/check-in_$client_key" && echo " "
+#echo "curl -L -s -H \"X-CLIENT-KEY: $client_key\" -H \"X-CLIENT-HOST: $client_host\" -H \"X-CLIENT-OS: $client_os\" -H \"X-CLIENT-OS-VER: $client_os_ver\" -H \"X-CLIENT-NEEDS-RESTART: $needsrestart\" $check_in > /tmp/check-in_$client_key" && echo " "
 
 cmds_line_count=$(cat /tmp/check-in_$client_key|wc -l)
 if [ "$cmds_line_count" -gt "1" ]; then

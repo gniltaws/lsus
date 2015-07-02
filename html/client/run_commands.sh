@@ -15,7 +15,7 @@ if [[ ! -f "${client_path}.patchrc" ]]; then
 fi
 . ${client_path}.patchrc
 rm -rf /tmp/cmds_$client_key > /dev/null 2>&1
-curl -k -s -H "X-CLIENT-KEY: $client_key" $get_cmd_uri > /tmp/cmds_$client_key
+curl -L -s -H "X-CLIENT-KEY: $client_key" $get_cmd_uri > /tmp/cmds_$client_key
 cmds_line_count=$(cat /tmp/cmds_$client_key|wc -l)
 if [ "$cmds_line_count" -gt "0" ]; then
         . /tmp/cmds_$client_key
