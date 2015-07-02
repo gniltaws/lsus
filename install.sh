@@ -41,9 +41,21 @@
 # get hostname into var
 export host_node=`hostname`
 
-# generate random passwords
-SERVER_IP=$(ip addr|grep inet|grep eth0|awk '{print $2}'|cut -d'/' -f1)
+# Set variables
+SERVER_IP=$(ip addr | awk '$NF ~/eth0/ {print $2}' | cut -d'/' -f1)
 MY_PATH="`dirname \"$0\"`"
+
+# Check to see if the server has a FQDN in DNS, if so use that instead of the IP
+# This improves security by allowing the use of a real certificate
+fqdn=$(hostname --fqdn)
+fqdnIP=$(host $fqdn | awk '$2 ~/has/ {print $NF}')
+
+if [ "$fqdnIP" == "$SERVER_IP" ]
+then
+    	SERVER_IP=$fqdn
+fi
+
+# generate random passwords
 hash_pass_script="$MY_PATH/hash_pass.php"
 password_salt=$(dd if=/dev/urandom bs=1 count=32 2>/dev/null | base64 -w 0 | rev | cut -b 2- | rev)
 
@@ -1438,6 +1450,24 @@ if [ "$rewrite_check" = "1" ]; then
 	echo -e "\n\e[31mError\e[0m: Apache Mod_rewrite or .htaccess is not working.  Please ensure you have mod_rewrite installed and enabled.  If it is, please make sure you change 'AllowOverride None' to 'AllowOverride All'"
 	echo -e "\e[31mError\e[0m: If you don't, this site won't work. \e[31mYou've been warned\e[0m."
 fi
+
+# Check if https is configured.  If so, change http:// uri's in scripts to https://
+listeningon443=$(netstat -an |grep ':443 ' | grep -c LISTEN)
+if [ "$listeningon443" -gt 0]; then
+	# Make sure https works 
+	authkeycount=$(curl -s https://${SERVER_IP}/$patchmgr/client/check-in.sh | grep -c "$authkey")
+	if [ $authkeycount -eq 1 ]; then
+		echo -e "It looks like the server is set to use secure http (https)."
+		read -p "Do you want to modify the scripts to use https? (yes/no): " yn
+		while [[ $yn = "" ]]; do
+			read -p "Do you want to modify the scripts to use https? (yes/no): " yn
+		done
+		if [[ "$yn" = "yes" || "$yn" = "y" ]]; then
+			sed -i 's/server_uri\=\"http/server_uri\=\"https/' ${targetdir}/client/*.sh
+		fi
+	fi
+fi
+
 echo -e "\n\e[32mNotice\e[0m: Basic Installation is now complete. You can now go to http(s)://${host_node}${relative_path} and begin working with this tool.  To add servers, use the following command:
 	/opt/patch_manager/add_server.sh -s server_name -ip ip_address
 	It will ask you some questions regarding the user, password, and some other things.  Just follow the prompts.
