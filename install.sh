@@ -1453,7 +1453,7 @@ fi
 
 # Check if https is configured.  If so, change http:// uri's in scripts to https://
 listeningon443=$(netstat -an |grep ':443 ' | grep -c LISTEN)
-if [ "$listeningon443" -gt 0]; then
+if [ "$listeningon443" -gt 0 ]; then
 	# Make sure https works 
 	authkeycount=$(curl -s https://${SERVER_IP}/$patchmgr/client/check-in.sh | grep -c "$authkey")
 	if [ $authkeycount -eq 1 ]; then
