@@ -1,4 +1,4 @@
-CREATE TABLE `patch_allpackages` (
+CREATE TABLE IF NOT EXISTS `patch_allpackages` (
   `server_name` varchar(128) NOT NULL,
   `package_name` varchar(60) NOT NULL,
   `package_version` varchar(60) NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE `patch_allpackages` (
   KEY `ix_package_name` (`package_name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
-CREATE TABLE `servers` (
+CREATE TABLE IF NOT EXISTS `servers` (
   `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
   `server_name` varchar(128) NOT NULL,
   `server_alias` varchar(128) NOT NULL,
@@ -35,10 +35,10 @@ CREATE TABLE IF NOT EXISTS `supressed` (
   `server_name` varchar(128) NOT NULL, /* 0 for global */
   PRIMARY KEY (`id`),
   KEY `ix_package_name` (`package_name`),
-  KEY `ix_server_name` (`server_name`(255))
+  KEY `ix_server_name` (`server_name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
-CREATE TABLE `distro` (
+CREATE TABLE IF NOT EXISTS `distro` (
   `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
   `distro_name` varchar(20) NOT NULL,
   `icon_path` varchar(255) NOT NULL,
@@ -55,7 +55,7 @@ INSERT IGNORE INTO `distro` (`id`, `distro_name`, `icon_path`, `upgrade_command`
 (5, 'RHEL', 'img/icon/rhel.png', 'yum -y install'),
 (6, 'Oracle', 'img/icon/oracle.png', 'yum -y install');
 
-CREATE TABLE `distro_version` (
+CREATE TABLE IF NOT EXISTS `distro_version` (
   `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
   `version_num` varchar(20) NOT NULL,
   `distro_id` mediumint(8) NOT NULL,
@@ -90,7 +90,7 @@ INSERT IGNORE INTO `distro_version` (`id`, `version_num`, `distro_id`, `eol_date
 (22, '7', 6, '2024-06-30 00:00:00'),
 (23, '7', 6, '2024-06-30 00:00:00');
 
-CREATE TABLE `patches` (
+CREATE TABLE IF NOT EXISTS `patches` (
   `server_name` varchar(128) NOT NULL,
   `package_name` varchar(60) NOT NULL,
   `current` varchar(60) NOT NULL,
@@ -105,7 +105,7 @@ CREATE TABLE `patches` (
   KEY `ix_package_name` (`package_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `users` (
+CREATE TABLE IF NOT EXISTS `users` (
   `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` varchar(40) NOT NULL,
   `email` varchar(80) NOT NULL,
@@ -123,7 +123,7 @@ CREATE TABLE `users` (
   KEY `ix_receive_alerts` (`receive_alerts`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
-CREATE TABLE `company` (
+CREATE TABLE IF NOT EXISTS `company` (
   `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(40) NOT NULL,
   `display_name` varchar(50) NOT NULL,
@@ -132,7 +132,7 @@ CREATE TABLE `company` (
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
-CREATE TABLE `plugins` (
+CREATE TABLE IF NOT EXISTS `plugins` (
   `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(40) NOT NULL,
   `disabled` tinyint(1) NOT NULL DEFAULT '1',
@@ -149,7 +149,7 @@ INSERT IGNORE INTO `plugins` (`id`, `name`, `disabled`, `installed`, `is_admin`,
 (1, 'main', 0, 1, 0, 'glyphicon-home'),
 (2, 'admin', 0, 1, 1, 'glyphicon-wrench');
 
-CREATE TABLE `page_maps` (
+CREATE TABLE IF NOT EXISTS `page_maps` (
   `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
   `page_name` varchar(40) NOT NULL,
   `real_file` varchar(40) NOT NULL,
@@ -178,5 +178,5 @@ INSERT IGNORE INTO `page_maps` (`id`, `page_name`, `real_file`, `plugin_parent`,
 (13, 'add_user', 'add_user.inc.php', 2, 1, 'glyphicon-eye-open'),
 (14, 'manage_suppressions', 'manage_suppressions.inc.php', 2, 1, 'glyphicon-minus-sign'),
 (15, 'add_server', 'add_server.inc.php', 2, 1, 'glyphicon-question-sign');
--- CREATE TABLE `wsus_data` (
+-- CREATE TABLE IF NOT EXISTS `wsus_data` (
 -- ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
