@@ -948,11 +948,20 @@ function WebUIInfo()
 {
 	echo -e "\e[32m\e[4mWebpage Location Setup\e[0m\n"
 	unset new_web_dir
+	read -p "Please enter the desired URL for clients [Detected: $SERVER_IP]: " new_fqdn
+	if [[ "$new_fqdn" != "" ]]; then
+		echo -e "\n\e[32mNotice\e[0m: Using updated client URL: $new_fqdn"
+		SERVER_IP=$new_fqdn
+	fi
+	while [[ "$new_fqdn" = "" ]]; do
+		echo -e "\n\e[32mNotice\e[0m: Using detected client URL: $SERVER_IP"
+	done
+	
 	read -p "Please enter location for web interface [Default: $web_dir]: " new_web_dir
 	while [[ "$new_web_dir" = "" ]]; do
         	echo -e "\e[32mNotice\e[0m: Default Location Used: $web_dir"
         	new_web_dir=$web_dir
-		EXTERNAL_WEB_URI="http://${SERVER_IP}${new_web_dir}"
+			EXTERNAL_WEB_URI="http://${SERVER_IP}${new_web_dir}"
 	done
 	echo $new_web_dir|grep --word-regexp "${doc_root%%/html}" > /dev/null 2>&1
         if [[ "$?" = 1 ]]; then
@@ -1458,7 +1467,6 @@ if [ $listeningon443 -gt 0 ]; then
 	echo -e "Listening on port 443, confirming that PatchDB is reachable..."
 	# Make sure https works 
 	authkeycount=$(curl -L -s https://${SERVER_IP}${relative_path}client/check-in.sh | grep -c auth_key=)
-	echo "https://${SERVER_IP}${relative_path}client/check-in.sh $auth_key"
 	if [ $authkeycount -eq 1 ]; then
 		echo -e "It looks like the server is set to use secure http (https)."
 		read -p "Do you want to modify the scripts to use https? (yes/no): " yn
