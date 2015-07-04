@@ -1457,7 +1457,7 @@ listeningon443=$(netstat -an |grep ':443 ' | grep -c LISTEN)
 if [ $listeningon443 -gt 0 ]; then
 	echo -e "Listening on port 443, confirming that PatchDB is reachable..."
 	# Make sure https works 
-	authkeycount=$(curl -L -s https://${SERVER_IP}${relative_path}client/check-in.sh | grep -c "$auth_key")
+	authkeycount=$(curl -L -s https://${SERVER_IP}${relative_path}client/check-in.sh | grep -c auth_key=)
 	echo "https://${SERVER_IP}${relative_path}client/check-in.sh $auth_key"
 	if [ $authkeycount -eq 1 ]; then
 		echo -e "It looks like the server is set to use secure http (https)."
