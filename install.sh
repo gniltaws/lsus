@@ -1452,8 +1452,10 @@ if [ "$rewrite_check" = "1" ]; then
 fi
 
 # Check if https is configured.  If so, change http:// uri's in scripts to https://
+echo "Checking to see if https is already enabled..."
 listeningon443=$(netstat -an |grep ':443 ' | grep -c LISTEN)
-if [ "$listeningon443" -gt 0 ]; then
+if [ $listeningon443 -gt 0 ]; then
+	echo "Listening on port 443, confirming that PatchDB is reachable..."
 	# Make sure https works 
 	authkeycount=$(curl -s https://${SERVER_IP}/$patchmgr/client/check-in.sh | grep -c "$authkey")
 	if [ $authkeycount -eq 1 ]; then
@@ -1465,7 +1467,11 @@ if [ "$listeningon443" -gt 0 ]; then
 		if [[ "$yn" = "yes" || "$yn" = "y" ]]; then
 			sed -i 's/server_uri\=\"http/server_uri\=\"https/' ${targetdir}/client/*.sh
 		fi
+	else
+		echo "Could not connect to server with https:"
 	fi
+else
+	echo "Not listening on port 443.  Assuming that https is not enabled."
 fi
 
 echo -e "\n\e[32mNotice\e[0m: Basic Installation is now complete. You can now go to http(s)://${host_node}${relative_path} and begin working with this tool.  To add servers, use the following command:
