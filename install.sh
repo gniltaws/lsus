@@ -950,11 +950,11 @@ function WebUIInfo()
 	unset new_web_dir
 	read -p "Please enter the desired URL for clients [Detected: $SERVER_IP]: " new_fqdn
 	if [[ "$new_fqdn" != "" ]]; then
-		echo -e "\n\e[32mNotice\e[0m: Using updated client URL: $new_fqdn"
+		echo -e "\n\e[32mNotice\e[0m: Using updated client URL: \e[36m$new_fqdn\e[0m"
 		SERVER_IP=$new_fqdn
 	fi
 	while [[ "$new_fqdn" = "" ]]; do
-		echo -e "\n\e[32mNotice\e[0m: Using detected client URL: $SERVER_IP"
+		echo -e "\n\e[32mNotice\e[0m: Using detected client URL: \e[36m$SERVER_IP\e[0m"
 	done
 	
 	read -p "Please enter location for web interface [Default: $web_dir]: " new_web_dir
@@ -1461,7 +1461,8 @@ if [ "$rewrite_check" = "1" ]; then
 fi
 
 # Check if https is configured.  If so, change http:// uri's in scripts to https://
-echo -e "Checking to see if https is already enabled..."
+echo ""
+echo -e "\e[36m# Checking to see if https is already enabled\e[0m\n"
 listeningon443=$(netstat -an |grep ':443 ' | grep -c LISTEN)
 if [ $listeningon443 -gt 0 ]; then
 	echo -e "Listening on port 443, confirming that PatchDB is reachable..."
