@@ -1452,12 +1452,12 @@ if [ "$rewrite_check" = "1" ]; then
 fi
 
 # Check if https is configured.  If so, change http:// uri's in scripts to https://
-echo "Checking to see if https is already enabled..."
+echo -e "Checking to see if https is already enabled..."
 listeningon443=$(netstat -an |grep ':443 ' | grep -c LISTEN)
 if [ $listeningon443 -gt 0 ]; then
-	echo "Listening on port 443, confirming that PatchDB is reachable..."
+	echo -e "Listening on port 443, confirming that PatchDB is reachable..."
 	# Make sure https works 
-	authkeycount=$(curl -s https://${SERVER_IP}/$patchmgr/client/check-in.sh | grep -c "$authkey")
+	authkeycount=$(curl -s https://$SERVER_IP/$patchmgr/client/check-in.sh | grep -c "$authkey")
 	if [ $authkeycount -eq 1 ]; then
 		echo -e "It looks like the server is set to use secure http (https)."
 		read -p "Do you want to modify the scripts to use https? (yes/no): " yn
@@ -1468,7 +1468,7 @@ if [ $listeningon443 -gt 0 ]; then
 			sed -i 's/server_uri\=\"http/server_uri\=\"https/' ${targetdir}/client/*.sh
 		fi
 	else
-		echo "Could not connect to server with https:"
+		echo -e "Could not connect to server with https:"
 	fi
 else
 	echo "Not listening on port 443.  Assuming that https is not enabled."
