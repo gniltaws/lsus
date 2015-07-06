@@ -91,7 +91,7 @@ if ($package_count == 0){
 else{
 		//Since Oracle Linux is set up to send all updates for a package, (not just the latest)
 		//there can be multiple entries.  This code removes duplicates.
-        $apt_cmd = "<code>".implode(' ',array_unique(explode(' ', $apt_cmd)))."</code>";
+        $apt_cmd = "<pre class='pre-scrollable'>".implode(' ',array_unique(explode(' ', $apt_cmd)))."</pre>";
 }
 ?>
           <h1 class="page-header">List Packages to Install</h1>
