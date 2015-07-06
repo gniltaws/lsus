@@ -2,7 +2,7 @@
 # Written by Todd Swatling todd.swatling@gmail.com
 # This script notifies LSUS users of available updates.
 # It is probably best to run this just after your servers check in with their patch lists.  Put this in cron:
-#* 6,14 * * * /root/lsus-alerts.bash 2>&1 /dev/null
+#* 6,14 * * * /root/lsus/lsus-alerts.bash 2>&1 /dev/null
 
 
 ## Set variables
