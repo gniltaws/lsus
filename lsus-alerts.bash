@@ -22,7 +22,7 @@ SELECT urgency AS 'Patch Urgency', COUNT(*) AS 'Count'
   GROUP BY urgency
   ORDER BY FIELD(urgency,'Critical','high','Important','Moderate','medium','Low','low','bugfix','enhancement');
 
-SELECT COUNT(needs_restart) AS 'Servers needing Service/OS restart'
+SELECT server_name AS 'Servers needing Service/OS restart'
   FROM servers
   WHERE trusted = 1 AND needs_restart > 0;
 
@@ -41,11 +41,11 @@ emails=`mysql -N -u $dbname -p$dbpass -e "USE $dbname; SELECT DISTINCT(email) FR
 ## Insert a blank line between the tables
 body=$(sed 's/TABLE><TABLE/TABLE><BR><TABLE/' $tmpfile)
 
-## Send the message to all users set to receive alerts
+## Send the message to all users set to receive alerts, but only if there is something to notify them of
 ## Your server must me configured to properly send mail with something like sendmail or exim.
-for emailaddress in $emails
-do
-  echo $body | mail -a "MIME-Version: 1.0" -a "Content-Type: text/html" -s "LSUS" $emailaddress
-done
-
+if [[ $body =~ "TABLE" ]]; then
+  if [[ $emails =~ "@" ]]; then
+    echo $body | mail -a "MIME-Version: 1.0" -a "Content-Type: text/html" -s "LSUS" $emails
+  fi
+fi
 rm $tmpfile
