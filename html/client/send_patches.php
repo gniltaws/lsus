@@ -64,11 +64,6 @@ if (mysql_num_rows($client_check_res) == 1) {
 			}
 		}
 		elseif ( $os == "Debian" ) {
-			$bug_curl = shell_exec("bash -c \"curl -s http://www.ubuntuupdates.org/bugs?package_name=$package_name|grep '<td>' 2>/dev/null|head -1\"");
-			$url = str_replace("<td><a href='", "", $bug_curl);
-			$url_array = explode("'", $url);
-			$the_url = $url_array[0];
-
 			$curlopt_url = "https://packages.debian.org/".$release."/".$package_name;
 
 			//Get the package's webpage in order to get the URL for its changelog
