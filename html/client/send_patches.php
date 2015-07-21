@@ -8,6 +8,50 @@ $os = "";
 $link = mysql_connect(DB_HOST, DB_USER, DB_PASS);
 mysql_select_db(DB_NAME, $link);
 $client_check_res = mysql_query($client_check_sql);
+
+function getDebUrgencyandURL($debRelease, $pkgName, $pkgVersion ) {
+	$curlopt_url = "https://packages.debian.org/".$debRelease."/".$pkgName;
+
+	//Get the package's webpage in order to get the URL for its changelog
+	$curl = curl_init();
+	curl_setopt ($curl, CURLOPT_URL, $curlopt_url );
+	curl_setopt($curl, CURLOPT_PROXY, "webcache.vassar.edu:3128");
+	curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);		
+	
+	$result = curl_exec ($curl);
+	curl_close ($curl);
+
+	//Now search the page for the changelog url
+	preg_match_all ( '/http.*Debian Changelog/' , $result , $chlogmatches );
+	$explodedmatches = explode( '"', $chlogmatches[0][0]);
+
+	$chlogurl = $explodedmatches[0];
+
+	//Using the changelog url from above, get the changelog, and look up the priority of the 
+	$curl = curl_init();
+	curl_setopt($curl, CURLOPT_URL, $chlogurl );
+	curl_setopt($curl, CURLOPT_PROXY, "webcache.vassar.edu:3128");
+	curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+
+	$result = curl_exec ($curl);
+	curl_close ($curl);
+
+	//Now search the changelog for the line with the version in question
+	$pattern="/.*".preg_quote($pkgVersion).".*urgency=.*/"; 
+	preg_match_all ( $pattern , $result , $urgencymatches );
+
+	$explodedurgency = explode( 'urgency=', $urgencymatches[0][0]);
+	$explodedsrcpkg = explode( ' ', $urgencymatches[0][0]);
+	
+	$urgency = $explodedurgency[1];
+	$srcpkg = $explodedsrcpkg[0];
+	$the_url = "https://security-tracker.debian.org/tracker/source-package/".$srcpkg;
+	
+	return array ($explodedurgency[1], "https://security-tracker.debian.org/tracker/source-package/".$explodedsrcpkg[0]);
+}
+
 if (mysql_num_rows($client_check_res) == 1) {
     $row = mysql_fetch_array($client_check_res);
     $server_name = $row['server_name'];
@@ -64,44 +108,18 @@ if (mysql_num_rows($client_check_res) == 1) {
 			}
 		}
 		elseif ( $os == "Debian" ) {
-			$curlopt_url = "https://packages.debian.org/".$release."/".$package_name;
-
-			//Get the package's webpage in order to get the URL for its changelog
-			$curl = curl_init();
-			curl_setopt ($curl, CURLOPT_URL, $curlopt_url );
-			curl_setopt($curl, CURLOPT_PROXY, "YOUR_PROXY_SERVER:PORT");
-			curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-			curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-
-			$result = curl_exec ($curl);
-			curl_close ($curl);
-
-			//Now search the page for the changelog url
-			preg_match_all ( '/http.*Debian Changelog/' , $result , $chlogmatches );
-			$explodedmatches = explode( '"', $chlogmatches[0][0]);
-
-			$chlogurl = $explodedmatches[0];
-
-			//Using the changelog url from above, get the changelog, and look up the priority of the 
-			$curl = curl_init();
-			curl_setopt($curl, CURLOPT_URL, $chlogurl );
-			curl_setopt($curl, CURLOPT_PROXY, "YOUR_PROXY_SERVER:PORT");
-			curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-			curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-
-			$result = curl_exec ($curl);
-			curl_close ($curl);
-
-			//Now search the changelog for the line with the version in question
-			$pattern="/.*".preg_quote($package_to).".*urgency=.*/"; 
-			preg_match_all ( $pattern , $result , $urgencymatches );
-
-			$explodedurgency = explode( 'urgency=', $urgencymatches[0][0]);
-			$explodedsrcpkg = explode( ' ', $urgencymatches[0][0]);
-
-			$urgency = $explodedurgency[1];
-			$srcpkg = $explodedsrcpkg[0];
-			$the_url = "https://security-tracker.debian.org/tracker/source-package/".$srcpkg;
+			
+			$urgandURL = getDebUrgencyandURL($release, $package_name, $package_to);
+			$urgency = $urgandURL[0];
+			$the_url = $urgandURL[1];
+			
+			// If the urgency has not been found, try a different release name
+			if ( strlen($urgency) < 2 ) {
+				$urgandURL = getDebUrgencyandURL($release."-updates", $package_name, $package_to);
+				$urgency = $urgandURL[0];
+				$the_url = $urgandURL[1];
+			}
+			
 		}
         if (!in_array($package_name, $suppression_array)) {
             $sql = "INSERT INTO patches(server_name,package_name,current,new,urgency,bug_url) VALUES('$server_name','$package_name','$package_from','$package_to','$urgency','$the_url');";
