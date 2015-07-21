@@ -69,7 +69,7 @@ if (mysql_num_rows($client_check_res) == 1) {
 			//Get the package's webpage in order to get the URL for its changelog
 			$curl = curl_init();
 			curl_setopt ($curl, CURLOPT_URL, $curlopt_url );
-			curl_setopt($curl, CURLOPT_PROXY, "webcache.vassar.edu:3128");
+			curl_setopt($curl, CURLOPT_PROXY, "YOUR_PROXY_HERE");
 			curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 			curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
 
@@ -85,7 +85,7 @@ if (mysql_num_rows($client_check_res) == 1) {
 			//Using the changelog url from above, get the changelog, and look up the priority of the 
 			$curl = curl_init();
 			curl_setopt($curl, CURLOPT_URL, $chlogurl );
-			curl_setopt($curl, CURLOPT_PROXY, "webcache.vassar.edu:3128");
+			curl_setopt($curl, CURLOPT_PROXY, "YOUR_PROXY_HERE");
 			curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 			curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
 

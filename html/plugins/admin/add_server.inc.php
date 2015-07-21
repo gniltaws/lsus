@@ -19,7 +19,7 @@ $SERVER_URI = $protocol.$_SERVER['HTTP_HOST'].BASE_PATH;
         <div class="col-sm-9 col-md-9">
           <div class="error-template">
                 <h1>Adding a server</h1>
-		<h3>By default all Linux <a href="https://puppet.vassar.edu">Puppet</a> nodes will have the LSUS client installed automatically.</h3>
+		<h3>By default all Linux <a href="https://YOUR_PUPPET_SERVER_HERE">Puppet</a> nodes will have the LSUS client installed automatically.</h3>
 		The instructions below are for rare circumstances when it is necessary to add non-puppetized system.
 		<br /> <i>Be sure to go to <a href="manage_servers">Manage Servers</a> and click "Reactivate/Trust" so the system will send updates to LSUS.</i>
                 <div class="error-details">
