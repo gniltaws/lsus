@@ -45,14 +45,19 @@ if [[ "$os" = "Oracle" ]]; then
 	updateinfo="/tmp/updateinfo.txt"
 	checkupdate="/tmp/check-update.txt"
 	severityfile="/tmp/severity_sorted.txt"
-	
+
 	baseurl="https://linux.oracle.com/errata/"
-	
+
 	#Get list of all updates with severity
+    #first command is OL6 compatible, second uncommented command is OL5 & OL6 compatible
+	#yum updateinfo list | awk '$1 ~/EL/ {print}' > $updateinfo
 	yum list-security | awk '$1 ~/EL/ {print}' > $updateinfo
 
 	#Sort the list by severity
-	grep 'Critical/Sec.' $updateinfo | sort -r | sed 's:Critical/Sec.:Critical:g' > $severityfile
+    ## OL5 still uses up2date primarily and an old version of yum.
+    ## Consequently, it doesn't get into granularity of security updates.
+	grep 'security' $updateinfo | sort -r > $severityfile
+	grep 'Critical/Sec.' $updateinfo | sort -r | sed 's:Critical/Sec.:Critical:g' >> $severityfile
 	grep 'Important/Sec.' $updateinfo | sort -r | sed 's:Important/Sec.:Important:g' >> $severityfile
 	grep 'Moderate/Sec.' $updateinfo | sort -r | sed 's:Moderate/Sec.:Moderate:g' >> $severityfile
 	grep 'Low/Sec.' $updateinfo | sort -r | sed 's:Low/Sec.:Low:g' >> $severityfile
@@ -60,24 +65,24 @@ if [[ "$os" = "Oracle" ]]; then
 	grep 'enhancement' $updateinfo | sort -r >> $severityfile
 
 	#Gets the list of the latest updates
-	yum -q check-update | awk '$3 ~/^ol/ {print}' > $checkupdate
+	yum -q check-update | awk '$3 ~/^o|el/ {print}' > $checkupdate
 
 	while read line
 	do
 		pkg=`echo $line | awk -F. '{print $1}'`
 		instver=`rpm -q $pkg --qf '%{VERSION}-%{RELEASE}'`
-		
+
 		oldIFS=$IFS
 		IFS=$(echo -en "\n\b")
-		  		
+
   		for updateline in `grep " $pkg-[0-9]" $severityfile`
-  		do
-  			updver=`echo $updateline | awk '{print $3}' | sed "s/$pkg-//g" | awk -F. 'sub(FS $NF,x)'`
-  			severity=`echo $updateline | awk '{print $2}'`
-  			advisory=`echo $updateline | awk '{print $1}'`
-  			  			
+		do
+			updver=`echo $updateline | awk '{print $3}' | sed "s/$pkg-//g" | awk -F. 'sub(FS $NF,x)'`
+			severity=`echo $updateline | awk '{print $2}'`
+			advisory=`echo $updateline | awk '{print $1}'`
+
 			echo "$pkg:::$instver:::$updver:::$os:::$osver:::$severity:::$baseurl$advisory" >> /tmp/patch_$client_key
-  		done
+		done
   		IFS=$oldIFS
 	done < $checkupdate
 
