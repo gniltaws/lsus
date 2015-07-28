@@ -54,7 +54,7 @@ needsrestart="-1"
 if [ $client_os == 'Debian' ]; then
 	needsrestart=`checkrestart | awk '$1 ~/^Found/ {print $2}'`
 elif [ $client_os == 'RHEL' ] || [ $client_os == 'Oracle' ]; then
-	needsrestart=`needs-restarting | wc -l`
+	needsrestart=`if [ -x /usr/bin/needs-restarting ]; then /usr/bin/needs-restarting | wc -l ; else echo "-1"; fi`
 fi
 
 # load client_key
