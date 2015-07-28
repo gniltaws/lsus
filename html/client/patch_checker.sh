@@ -49,7 +49,7 @@ if [[ "$os" = "Oracle" ]]; then
 	baseurl="https://linux.oracle.com/errata/"
 	
 	#Get list of all updates with severity
-	yum updateinfo list | awk '$1 ~/EL/ {print}' > $updateinfo
+	yum list-security | awk '$1 ~/EL/ {print}' > $updateinfo
 
 	#Sort the list by severity
 	grep 'Critical/Sec.' $updateinfo | sort -r | sed 's:Critical/Sec.:Critical:g' > $severityfile
